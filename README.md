@@ -38,6 +38,114 @@ This repository implements Block's MCP server design patterns for personal produ
 
 **See [Workflows & Use Cases](./docs/vision/WORKFLOWS_AND_USE_CASES.md) for detailed examples.**
 
+---
+
+## Why Claude + Cursor + MCP?
+
+This stack is built specifically for **Claude (Anthropic) and Cursor IDE** using the **Model Context Protocol (MCP)** standard. Here's why this combination makes sense and why alternatives (ChatGPT, Gemini) would require significant architectural changes:
+
+### Claude's MCP Commitment
+
+**Anthropic went all-in on MCP as an open standard:**
+- ✅ **Native MCP support** in Claude Desktop and Claude.ai (user-facing configuration)
+- ✅ **OAuth broker pattern** - Centralized token management that works seamlessly
+- ✅ **Open standard** - MCP is open source, not proprietary to Anthropic
+- ✅ **Ecosystem-first** - "Build once, use everywhere" philosophy
+- ✅ **Voice integration** - Remote MCPs in Claude.ai automatically work in Claude phone app
+
+**Strategic positioning:** Anthropic bet on open standards and interoperability over proprietary solutions, making MCP the foundation of their tool integration strategy.
+
+### Why Not ChatGPT or Gemini?
+
+**ChatGPT (OpenAI):**
+- ❌ **No native MCP support** - Uses Actions (OpenAPI schema), not MCP protocol
+- ❌ **Different OAuth model** - ChatGPT handles OAuth itself, requiring separate OAuth apps per service
+- ❌ **GitHub limitation** - GitHub only allows one redirect URI per OAuth app, so you'd need multiple OAuth apps (one for ChatGPT, one for other tools)
+- ❌ **Proprietary approach** - Actions are OpenAI-specific, not an open standard
+- ⚠️ **Beta MCP support** - Added March 2025, but enterprise/developer mode only, not consumer-facing
+
+**To use this stack with ChatGPT would require:**
+1. Building OpenAPI Actions wrapper (converting MCP JSON-RPC to OpenAPI)
+2. Creating separate OAuth apps for each service (GitHub limitation)
+3. Custom OAuth flow (ChatGPT handles OAuth, passes Bearer tokens differently)
+4. Maintaining two integration paths (MCP for Claude, Actions for ChatGPT)
+
+**Gemini (Google):**
+- ❌ **No user-facing MCP** - MCP support exists at API level for developers only
+- ❌ **No consumer access** - End users can't configure MCP servers in Gemini UI
+- ❌ **"Gems" instead** - Google uses curated "Gems" (like ChatGPT's Actions) for consumers
+- ❌ **Enterprise focus** - MCP is a developer tool (Vertex AI), not a consumer feature
+
+**To use this stack with Gemini would require:**
+1. Building a custom client application (Gemini doesn't support user-facing MCP)
+2. Using Vertex AI API directly (not the consumer Gemini interface)
+3. Losing the voice/mobile access that makes this stack valuable
+
+### OAuth Architecture Differences
+
+**Claude's OAuth Pattern (Works with This Stack):**
+```
+User → Claude.ai → OAuth Broker → Service API
+                    ↓
+              Single OAuth app per service
+              Centralized token management
+              Auto-refresh tokens
+```
+
+- **One OAuth app per service** (shared across all MCP servers)
+- **OAuth broker handles everything** - Token storage, refresh, multi-user support
+- **Works seamlessly** - No additional OAuth apps needed for different clients
+
+**ChatGPT's OAuth Pattern (Would Require Changes):**
+```
+User → ChatGPT → ChatGPT OAuth Handler → Service API
+                    ↓
+              Separate OAuth app per service
+              ChatGPT manages tokens
+              Different redirect URIs needed
+```
+
+- **Multiple OAuth apps needed** - One per service, potentially one per client (GitHub limitation)
+- **ChatGPT handles OAuth** - Different flow than OAuth broker pattern
+- **Redirect URI conflicts** - GitHub only allows one redirect URI per OAuth app
+
+**Gemini's Pattern (No Consumer MCP):**
+- **No user-facing OAuth** - MCP is API-level only for developers
+- **Would require custom client** - Not accessible via Gemini UI
+
+### The Compatibility Advantage
+
+**Why Claude + MCP is more compatible:**
+
+1. **Open Standard** - MCP is open source and platform-agnostic
+2. **Single Integration Path** - One MCP server works with Claude Desktop, Claude.ai, and Claude phone app
+3. **OAuth Broker Pattern** - Centralized authentication that scales across clients
+4. **No Vendor Lock-in** - MCP servers can work with any MCP-compatible client
+5. **Future-Proof** - Industry is converging on MCP (OpenAI and Microsoft backing it)
+
+**Why ChatGPT/Gemini would require new clients:**
+
+1. **Different Protocols** - Actions (ChatGPT) and Function Calling (Gemini) vs MCP JSON-RPC
+2. **Different OAuth Flows** - Each platform handles OAuth differently
+3. **Platform-Specific Code** - Would need separate implementations for each platform
+4. **Maintenance Burden** - Supporting multiple protocols increases complexity
+
+### The Bottom Line
+
+**Claude + Cursor + MCP = Maximum Compatibility:**
+- ✅ **Claude** - Native MCP support, OAuth broker pattern, voice access
+- ✅ **Cursor** - Local MCP support via stdio transport
+- ✅ **MCP** - Open standard, works across platforms, future-proof
+
+**ChatGPT/Gemini/Microsoft = Platform-Specific Complexity:**
+- ❌ **ChatGPT** - Requires Actions wrapper, multiple OAuth apps, proprietary protocol
+- ❌ **Gemini** - No consumer MCP, would require custom client development
+- ❌ **Microsoft Copilot/Power Automate** - No consumer MCP, uses Plugins/Connectors, requires Microsoft Entra ID OAuth (different from standard OAuth)
+
+**See [`docs/reference/MCP_VS_ACTIONS_PHILOSOPHY.md`](./docs/reference/MCP_VS_ACTIONS_PHILOSOPHY.md), [`docs/reference/MCP_PLATFORM_SUPPORT.md`](./docs/reference/MCP_PLATFORM_SUPPORT.md), and [`docs/reference/MICROSOFT_ECOSYSTEM_MCP_COMPATIBILITY.md`](./docs/reference/MICROSOFT_ECOSYSTEM_MCP_COMPATIBILITY.md) for detailed platform comparisons.**
+
+---
+
 ### What Makes This Different
 
 **Block's Goose:**

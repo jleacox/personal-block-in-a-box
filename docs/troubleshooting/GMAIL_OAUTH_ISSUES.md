@@ -48,8 +48,8 @@ Expected OAuth 2 access token, login cookie or other valid authentication creden
 4. **Verify OAuth broker has valid token:**
    ```powershell
    # Test broker directly
-   $body = @{ user_id = "jason" } | ConvertTo-Json
-   Invoke-WebRequest -Uri "https://oauth-broker.jason-leacox.workers.dev/token/google" `
+   $body = @{ user_id = "YOUR_USER_ID" } | ConvertTo-Json
+   Invoke-WebRequest -Uri "https://oauth-broker.YOUR_SUBDOMAIN.workers.dev/token/google" `
      -Method POST -Headers @{"Content-Type" = "application/json"} -Body $body
    ```
 
@@ -127,7 +127,7 @@ imageAttachments.push({
    ```
 
 3. **Verify OAuth flow completed:**
-   - Visit: `https://oauth-broker.jason-leacox.workers.dev/auth/google`
+   - Visit: `https://oauth-broker.YOUR_SUBDOMAIN.workers.dev/auth/google`
    - Complete OAuth flow
    - Token should be stored in KV
 

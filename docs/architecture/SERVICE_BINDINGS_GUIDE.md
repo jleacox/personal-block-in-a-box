@@ -240,7 +240,7 @@ After implementing:
 2. **Test the gateway:**
    ```powershell
    $body = @{ jsonrpc = "2.0"; method = "tools/call"; params = @{ name = "list_repos"; arguments = @{ owner = "jleacox" } }; id = 1 } | ConvertTo-Json -Depth 10
-   Invoke-WebRequest -Uri "https://mcp-gateway.jason-leacox.workers.dev/mcp/sse" -Method POST -Headers @{"Content-Type" = "application/json"} -Body $body
+   Invoke-WebRequest -Uri "https://mcp-gateway.YOUR_SUBDOMAIN.workers.dev/mcp/sse" -Method POST -Headers @{"Content-Type" = "application/json"} -Body $body
    ```
 
 3. **Check logs:**

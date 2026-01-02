@@ -1,0 +1,35 @@
+{
+  "name": "@personal-block-in-a-box/mcp-github",
+  "version": "0.1.0",
+  "description": "Full JavaScript/TypeScript port of GitHub MCP server with Actions support",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsc --watch",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "mcp",
+    "github",
+    "actions",
+    "model-context-protocol"
+  ],
+  "author": "Jason Leacox",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.5.0",
+    "@octokit/rest": "^20.0.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@cloudflare/workers-types": "^4.20241127.0",
+    "typescript": "^5.3.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
+

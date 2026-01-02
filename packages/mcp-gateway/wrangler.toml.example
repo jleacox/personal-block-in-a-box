@@ -1,0 +1,30 @@
+name = "mcp-gateway"
+main = "src/index.ts"
+compatibility_date = "2024-12-30"
+compatibility_flags = ["nodejs_compat"]
+# Note: global_fetch_strictly_public is NOT needed when using Service Bindings (preferred)
+# Only add it if you're NOT using Service Bindings and need worker-to-worker HTTP fetch
+
+# Environment variables
+# Copy this file to wrangler.toml and fill in your values
+[vars]
+OAUTH_BROKER_URL = "https://oauth-broker.YOUR_SUBDOMAIN.workers.dev"
+USER_ID = "YOUR_USER_ID"
+
+# Optional: Direct tokens (fallback if OAuth broker not configured)
+# Set these via: wrangler secret put GITHUB_TOKEN
+# Set these via: wrangler secret put GOOGLE_ACCESS_TOKEN
+
+# Supabase configuration (for Supabase MCP)
+# Get these from your Supabase project settings
+# Use SERVICE_ROLE key (not anon key) for MCP server - bypasses RLS, full admin access
+# Set these via: wrangler secret put SUPABASE_URL
+# Set these via: wrangler secret put SUPABASE_KEY
+# Or add to wrangler.toml (gitignored)
+
+# Service Bindings (preferred over HTTP fetch for better performance)
+# This enables direct worker-to-worker communication (no billing, faster)
+[[services]]
+binding = "OAUTH_BROKER"
+service = "oauth-broker"
+

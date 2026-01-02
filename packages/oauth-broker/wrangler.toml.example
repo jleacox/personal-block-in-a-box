@@ -1,0 +1,21 @@
+name = "oauth-broker"
+main = "src/index.ts"
+compatibility_date = "2024-12-30"
+compatibility_flags = ["nodejs_compat"]
+# Note: global_fetch_strictly_public is NOT needed when using Service Bindings (preferred)
+# Only add it if you're NOT using Service Bindings and need worker-to-worker HTTP fetch
+
+# KV Namespace for token storage
+# Create namespaces with: wrangler kv namespace create "OAUTH_TOKENS"
+# Then update the IDs below
+[[kv_namespaces]]
+binding = "OAUTH_TOKENS"
+id = "YOUR_KV_NAMESPACE_ID"
+preview_id = "YOUR_PREVIEW_KV_NAMESPACE_ID"
+
+# OAuth credentials are set via secrets (not in this file):
+# wrangler secret put GITHUB_CLIENT_ID
+# wrangler secret put GITHUB_CLIENT_SECRET
+# wrangler secret put GOOGLE_CLIENT_ID
+# wrangler secret put GOOGLE_CLIENT_SECRET
+

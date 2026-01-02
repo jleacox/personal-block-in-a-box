@@ -1,0 +1,16 @@
+node_modules/
+dist/
+*.log
+.env
+.env.local
+.DS_Store
+vendor/*/
+!vendor/README.md
+*.tsbuildinfo
+.wrangler/
+wrangler.toml.local
+# Ignore actual wrangler.toml files (contain personal values)
+# But keep example files for others to use
+**/wrangler.toml
+docs/personal/
+

@@ -1,0 +1,10 @@
+name = "github-mcp"
+main = "src/worker.ts"
+compatibility_date = "2024-12-30"
+compatibility_flags = ["nodejs_compat"]
+
+# Environment variables
+# Copy this file to wrangler.toml and fill in your values
+[vars]
+OAUTH_BROKER_URL = "https://oauth-broker.YOUR_SUBDOMAIN.workers.dev"
+

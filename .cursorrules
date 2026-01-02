@@ -1,0 +1,580 @@
+# Cursor Rules for Personal Block-in-a-Box
+
+> **Note:** This is a generalized `.cursorrules` file suitable for committing to the repository. Replace `<workspace-root>` with your actual workspace path or use relative paths. The file contains project-specific conventions and best practices for working with this codebase.
+
+> **⚠️ CRITICAL:** Never use personal names, usernames, credentials, or real file paths in documentation files. Always use placeholders (`YOUR_SUBDOMAIN`, `YOUR_USER_ID`, `${workspaceFolder}`, etc.). Only provide personalized examples in Cursor agent chat conversations, not in committed documentation.
+
+# Cross-Agent Communication (Google Drive Integration)
+
+## Overview
+
+This project uses Google Drive as shared memory between Cursor (tactical/implementation) and Claude.ai (strategic/planning) sessions. This enables continuity across tools and helps manage context window limits.
+
+**Setup Required:** Create a Google Drive folder for your project and configure folder IDs in Cursor's Settings > Rules > User Rules (see `docs/setup/DRIVE_INTEGRATION_SETUP.md`).
+
+## Session Management & Context
+
+### For Claude.ai Sessions (Strategic)
+
+**When approaching context window limits (80-90% of token budget), automatically:**
+1. Update `CLAUDE_CONTEXT_SNAPSHOT.md` in your Drive communication folder
+2. At 90%, write full context backup to your Drive context backup folder
+
+**At the start of each Claude session, check these Drive files:**
+- `NEXT_SESSION.md` - Quick start and active conversation threads
+- `CLAUDE_CONTEXT_SNAPSHOT.md` - Working memory from previous session
+- `CROSS_TOOL_HANDOFFS.md` - Any work handed from Cursor
+- `CURRENT_STATE.md` - Executive summary of project status
+
+**At the end of significant Claude sessions:**
+- Update `CLAUDE_CONTEXT_SNAPSHOT.md` with working memory
+- Add entry to `logs/CLAUDE_SESSIONS.md` for strategic discussions
+- Update `NEXT_SESSION.md` with current status
+- Create handoff in `CROSS_TOOL_HANDOFFS.md` if work moves to Cursor
+
+### For Cursor Sessions (Implementation)
+
+**Cursor is less subject to context limits** (auto-summation helps), but still update:
+- `SESSION_LOG.md` - Implementation details, code changes, technical work
+- `DECISIONS_LOG.md` - Architecture/design decisions made during implementation
+- `ISSUES_LOG.md` - Problems encountered and solutions
+- `NEXT_SESSION.md` - Where you left off (at end of session)
+
+**At the start of each Cursor session:**
+- Read `NEXT_SESSION.md` for quick context
+- Check recent `SESSION_LOG.md` entries for recent work
+- Review `CROSS_TOOL_HANDOFFS.md` for any work from Claude
+- Reference `DECISIONS_LOG.md` or `ISSUES_LOG.md` as needed
+
+## Drive File Usage Guidelines
+
+**Strategic (Claude.ai domain):**
+- `CLAUDE_SESSIONS.md` - Strategic discussions, planning, decision rationale
+- `CLAUDE_CONTEXT_SNAPSHOT.md` - Working memory, updated throughout session
+- `CURRENT_STATE.md` - Executive summary of project status (quick reference)
+
+**Implementation (Cursor domain):**
+- `SESSION_LOG.md` - Implementation details, code changes, technical work
+- `DECISIONS_LOG.md` - Architecture/design decisions and rationale
+- `ISSUES_LOG.md` - Problems encountered and their solutions
+
+**Coordination:**
+- `CROSS_TOOL_HANDOFFS.md` - Explicit coordination between Claude and Cursor
+- `NEXT_SESSION.md` - Quick start, active threads, where we left off
+- `META_LOG.md` - Decisions about the communication system itself
+
+**See:** `docs/vision/DRIVE_STORAGE_PHILOSOPHY.md` for detailed Drive organization strategy
+**Setup:** `docs/setup/DRIVE_INTEGRATION_SETUP.md` for configuring your Drive folder
+
+## Critical: PowerShell Path Handling
+
+### ⚠️ ALWAYS verify current directory before running scripts
+
+**Problem:** PowerShell `cd` commands can leave you in subdirectories, causing "module not found" errors.
+
+**Rule:** Before running any script, check and reset to root directory:
+
+```powershell
+# Check current location
+Get-Location
+# Should be: <workspace-root>/personal-block-in-a-box
+
+# If not, reset to root
+Set-Location "<workspace-root>/personal-block-in-a-box"
+# Or use: Set-Location "$PSScriptRoot" if running from script
+
+# THEN run scripts
+npm install
+```
+
+**Never assume current directory.** Always verify or use absolute paths.
+
+### Script Execution Rules
+
+1. **Root directory scripts** (run from project root):
+   - `npm install` - Install workspace dependencies
+   - `npm run setup-vendor` - Setup vendor MCP servers
+   - All workspace-level commands
+
+2. **Package scripts** (run from package directory):
+   - `packages/mcp-github/` - npm commands here
+   - `packages/mcp-gateway/` - npm commands here
+   - `packages/oauth-broker/` - npm commands here
+
+3. **Always use backslashes for Windows paths in PowerShell:**
+   - ✅ `packages\mcp-github\src\index.ts`
+   - ❌ `packages/mcp-github/src/index.ts` (may cause issues in some contexts)
+
+## Project Structure
+
+### Root Directory
+```
+<workspace-root>/personal-block-in-a-box/
+```
+
+### Key Directories
+- `packages/` - Your own MCP servers and infrastructure
+  - `mcp-github/` - Full JavaScript port of GitHub MCP (with Actions)
+  - `mcp-gateway/` - Cloudflare Worker gateway for remote access
+  - `oauth-broker/` - Central OAuth token management
+  - `mcp-supabase/` - Custom Supabase MCP server
+- `vendor/` - Git-ignored, contains forked MCP servers (separate git repos)
+  - `mcp-gmail/` - Fork of GongRzhe/gmail-mcp-server
+  - `mcp-calendar/` - Fork with enhancements
+- `config/` - MCP configuration files
+  - `cursor.json.example` - Cursor IDE configuration
+  - `claude-desktop.json.example` - Claude Desktop configuration
+- `docs/` - Documentation
+- `scripts/` - Setup and utility scripts
+
+## Architecture Decisions
+
+### TypeScript Everywhere
+- **Decision:** Use TypeScript for all MCPs (local and remote)
+- **Why:** Cloudflare Workers require JavaScript/TypeScript (cannot run Go)
+- **Result:** Single codebase for local (Cursor/Claude Desktop) and remote (Cloudflare Workers)
+
+### GitHub MCP Strategy
+- **Full JavaScript Port:** Porting entire GitHub MCP server from Go to TypeScript
+- **Includes Actions:** Using consolidated Actions tools from `flip-actions-tool-ff-to-default` branch
+- **Dual Transport:** 
+  - `src/index.ts` - stdio transport for local (Cursor/Claude Desktop)
+  - `src/worker.ts` - HTTP transport for Cloudflare Workers
+- **All tools in one package:** Issues, PRs, Repos, Actions, etc.
+
+### MCP Organization
+- **packages/:** Your own implementations (full source, in monorepo)
+- **vendor/:** Forked servers (git-ignored, separate repos, managed via scripts)
+- **Extract later:** If a package gets popular, can extract to separate repo
+
+### Using Official MCP Servers
+
+**Asana MCP:**
+- Use [Asana's official MCP server](https://developers.asana.com/docs/using-asanas-mcp-server) (`https://mcp.asana.com/sse`)
+- Works with Claude.ai, Claude phone app, and Cursor
+- No custom implementation needed
+- Configure in `cursor.json` using `mcp-remote`: `npx mcp-remote https://mcp.asana.com/sse`
+
+**Philosophy:** When official MCP servers exist and work well, use them instead of building custom implementations.
+
+## ⚠️ CRITICAL: Compatibility Checks Before Building
+
+### Always Verify Compatibility First
+
+**Rule:** Before building, recommending, or implementing any approach, library, or language, **MUST verify compatibility** with the target environment.
+
+**Examples of compatibility issues:**
+- ❌ `googleapis` npm package → **NOT compatible** with Cloudflare Workers (requires Node.js APIs)
+- ❌ Python/Go processes → **NOT compatible** with Cloudflare Workers (only JavaScript/TypeScript)
+- ❌ Docker containers → **NOT compatible** with Cloudflare Workers (serverless runtime)
+- ✅ REST API with `fetch` → **Compatible** with Cloudflare Workers
+- ✅ `@octokit/rest` → **Compatible** with Cloudflare Workers
+- ✅ `@modelcontextprotocol/sdk` → **Compatible** with Cloudflare Workers
+
+### Compatibility Check Process
+
+1. **Before recommending a library/package:**
+   - Search for: `"[package-name]" "cloudflare workers" compatibility`
+   - Check official documentation for runtime requirements
+   - Look for known issues or workarounds
+   - Verify if it requires Node.js-specific APIs
+
+2. **Before recommending a language:**
+   - Cloudflare Workers: **Only JavaScript/TypeScript**
+   - Local development: **Node.js with TypeScript**
+
+3. **Before recommending an approach:**
+   - Check if it requires file system access (Workers don't have it)
+   - Check if it requires child processes (Workers don't support `spawn`)
+   - Check if it requires native modules (may not work in Workers)
+
+4. **If compatibility is uncertain:**
+   - **Research first** - don't guess or assume
+   - Look for official documentation or community solutions
+   - Consider alternative approaches that are known to work
+   - Document the compatibility check in code comments
+
+### Known Incompatibilities
+
+**Cloudflare Workers:**
+- ❌ `googleapis` - Use REST API with `fetch` instead
+- ❌ Python/Go - Use TypeScript/JavaScript only
+- ❌ Docker - Not supported
+- ❌ File system operations - Use KV or external storage
+- ❌ Child processes (`spawn`, `exec`) - Not supported
+- ❌ Long-running processes - Workers have execution time limits
+
+**Workarounds:**
+- Use REST APIs directly with `fetch` instead of SDKs
+- Use Web Crypto API instead of Node.js crypto
+- Use `fetch` for HTTP requests instead of Node.js `http`
+- Use Cloudflare KV for storage instead of file system
+
+## GitHub MCP Porting Strategy
+
+### Source Material
+- **Go Implementation:** `github.com/github/github-mcp-server` (main branch)
+- **Actions Tools:** `flip-actions-tool-ff-to-default` branch (consolidated Actions tools)
+- **Port to:** TypeScript/JavaScript in `packages/mcp-github/`
+
+### Tools to Port
+
+**Core Tools (from main branch):**
+- Issues: create, list, get, update, close, add comment, etc.
+- Pull Requests: create, list, get, update, merge, review, etc.
+- Repositories: list, get, create, update, etc.
+- Branches: list, get, create, delete, etc.
+- Commits: list, get, create, etc.
+- Files: get contents, create, update, delete
+- And more...
+
+**Actions Tools (from flip-actions-tool-ff-to-default branch):**
+- `actions_list` - List workflows, runs, jobs, artifacts
+- `actions_get` - Get details of workflows, runs, jobs, artifacts
+- `actions_run_trigger` - Run, rerun, cancel workflows, delete logs
+- `get_job_logs` - Get job logs with failed_only and return_content options
+
+### Porting Approach
+1. **Study Go implementation** - Understand the logic
+2. **Port to TypeScript** - Use `@octokit/rest` for GitHub API calls
+3. **Maintain feature parity** - Same functionality, different language
+4. **Cloudflare compatible** - Use only Web APIs, no Node.js-specific code
+5. **Dual transport** - Support both stdio (local) and HTTP (Workers)
+
+## Common Commands
+
+### Install Dependencies
+```powershell
+# From project root
+npm install
+```
+
+### Setup Vendor Servers
+```powershell
+# From project root
+npm run setup-vendor
+```
+
+### Build GitHub MCP
+```powershell
+# From project root
+cd packages\mcp-github
+npm run build
+```
+
+### Test Locally (stdio)
+```powershell
+# From project root
+cd packages\mcp-github
+npm start
+```
+
+### Deploy to Cloudflare
+```powershell
+# From project root
+cd packages\mcp-gateway
+wrangler deploy
+```
+
+## File Editing Rules
+
+1. **Never commit secrets:**
+   - `.env` - gitignored
+   - `.env.local` - gitignored
+   - Any files with API keys/tokens
+   - `vendor/` directory - gitignored (separate repos)
+
+2. **⚠️ CRITICAL: Documentation Personalization Rules**
+   - **NEVER** use personal names, usernames, or credentials in **committed** files
+   - **NEVER** use real file paths (e.g., `C:\Users\Jason\...`) in **committed** docs
+   - **ALWAYS** use placeholders: `YOUR_SUBDOMAIN`, `YOUR_USER_ID`, `${workspaceFolder}`, etc. in **committed** files
+   - **ONLY** provide personalized examples in Cursor agent chat (not in committed files)
+   - **Exception:** Files that are **gitignored** (`.env.local`, `wrangler.toml`, `.wrangler/`) can contain personal values
+   - **Exception:** Archive files (`docs/archive/`) may contain historical references, but new docs must be generalized
+   
+   **Examples (Committed Files):**
+   - ❌ `https://oauth-broker.jason-leacox.workers.dev` → ✅ `https://oauth-broker.YOUR_SUBDOMAIN.workers.dev`
+   - ❌ `C:\Users\Jason\Code\...` → ✅ `${workspaceFolder}/...` or `YOUR_PROJECT_PATH/...`
+   - ❌ `USER_ID: "jason"` → ✅ `USER_ID: "YOUR_USER_ID"`
+   - ❌ `"args": ["C:\\Users\\Jason\\..."]` → ✅ `"args": ["${workspaceFolder}/..."]`
+   
+   **Examples (Gitignored Files - OK to Use Personal Values):**
+   - ✅ `.env.local` - Can contain `GITHUB_TOKEN=ghp_xxx`
+   - ✅ `wrangler.toml` - Can contain `OAUTH_BROKER_URL = "https://oauth-broker.jason-leacox.workers.dev"` (gitignored, personal config)
+   - ✅ `.wrangler/` directory - Can contain anything
+   
+   **Examples (Committed Example Files - Must Use Placeholders):**
+   - ✅ `wrangler.toml.example` - Must use `YOUR_SUBDOMAIN`, `YOUR_USER_ID`, etc.
+   - ✅ `cursor.json.example` - Must use `${workspaceFolder}`, placeholders
+
+3. **Always verify paths in configs:**
+   - Use absolute paths for Windows compatibility in examples
+   - Verify paths exist before committing
+   - Use `${workspaceFolder}` in Cursor configs when possible
+
+4. **Cloudflare Workers Configuration:**
+   - **`wrangler.toml` is gitignored** - Contains personal values (subdomains, user IDs, API keys)
+   - **`wrangler.toml.example` is committed** - Template with placeholders for others to copy
+   - **Setup process:** Copy `wrangler.toml.example` to `wrangler.toml` and fill in your values
+   - **Why:** `wrangler.toml.local` only works for `wrangler dev`, NOT `wrangler deploy` (production)
+   - Never commit `token-data.json` or any files with tokens
+   - Use `wrangler secret put` for secrets (never in code or files)
+   - Always use `--remote` flag for production KV operations
+   - **CRITICAL: `wrangler secret put` requires INTERACTIVE input**
+     - Must run from package directory where `wrangler.toml` exists
+     - DO NOT pipe values: `echo $value | wrangler secret put KEY` creates empty secrets!
+     - User must enter values interactively when prompted
+   - See `docs/setup/WRANGLER_TOML_SETUP.md` for detailed setup guide
+
+5. **Document decisions:**
+   - Update `docs/architecture/` for architecture changes
+   - Update `docs/development/PORTING.md` for porting notes
+   - Update package READMEs for implementation details
+   - Update Drive `DECISIONS_LOG.md` for significant decisions
+   - Update Drive `SESSION_LOG.md` for implementation work
+
+## Cloudflare Workers
+
+- Workers run JavaScript/TypeScript (not Go, not Docker)
+- Import npm packages directly in Worker code
+- Use TypeScript MCPs from `packages/`
+- No Docker needed for TypeScript MCPs
+
+### Service Bindings (Recommended)
+
+**Service Bindings** are the preferred way for workers to communicate:
+- ✅ **No billing** for inter-worker calls
+- ✅ **10-20x faster** (1-5ms vs 50-100ms)
+- ✅ **More reliable** (no network issues)
+- ✅ **Works everywhere** (custom domains, routes, etc.)
+
+**Configuration:**
+```toml
+# In wrangler.toml
+[[services]]
+binding = "OAUTH_BROKER"
+service = "oauth-broker"
+```
+
+**Usage:**
+```typescript
+// Use Service Binding (preferred)
+if (env?.OAUTH_BROKER) {
+  await env.OAUTH_BROKER.fetch(new Request('https://example.com/token/github', {...}));
+}
+// Fallback to HTTP fetch
+else if (oauthBrokerUrl) {
+  await fetch(`${oauthBrokerUrl}/token/github`, {...});
+}
+```
+
+**See:** `docs/architecture/SERVICE_BINDINGS_GUIDE.md` for complete implementation guide
+
+### Worker-to-Worker Fetch (Error 1042)
+
+**Error 1042** occurs when a Worker tries to fetch from another Worker in the same zone (blocked by default).
+
+**Solutions:**
+1. **Service Bindings** (recommended) - Direct function calls, no billing
+2. **Compatibility flag** (temporary) - `global_fetch_strictly_public` (public hostnames only)
+
+**See:** `docs/troubleshooting/CLOUDFLARE_WORKER_TO_WORKER_FETCH.md` for details
+
+### Gateway Deployment
+
+**Deploy from gateway directory:**
+```powershell
+# From project root
+cd packages\mcp-gateway
+wrangler deploy
+```
+
+**Wrangler v4 Syntax Changes:**
+- ✅ `wrangler kv namespace create "NAME"` (not `kv:namespace`)
+- ✅ `wrangler kv key put --namespace-id=<ID> --remote "key" "value"` (use `--remote` for production)
+- ✅ `wrangler kv key get --namespace-id=<ID> --remote "key"` (use `--remote` for production)
+- ✅ Use `compatibility_flags = ["nodejs_compat"]` (not `node_compat = true`)
+
+### Authentication
+
+- Gateway uses bearer token authentication stored in Cloudflare KV
+- Protected endpoints require `Authorization: Bearer <token>` header
+- See gateway README for token management
+
+**Set Secrets:**
+```powershell
+# IMPORTANT: Must run from the gateway directory where wrangler.toml is located
+cd packages\mcp-gateway
+
+# wrangler secret put expects INTERACTIVE input - you'll be prompted to enter the value
+# DO NOT pipe values to it (echo $value | wrangler secret put) - this creates empty secrets!
+wrangler secret put GITHUB_TOKEN
+# When prompted, paste your token and press Enter
+```
+
+**⚠️ CRITICAL: Secret Setting Rules**
+- Always run `wrangler secret put` from `packages\mcp-gateway` directory
+- `wrangler secret put` requires INTERACTIVE input - you'll be prompted
+- NEVER pipe values: `echo $value | wrangler secret put KEY` creates empty secrets!
+- If you see "Required Worker name missing", you're in the wrong directory
+- After setting secrets, they're immediately available (no redeploy needed)
+
+## Vendor Directory
+
+- Vendor directory is git-ignored
+- Contains separate git repos (forks of other projects)
+- Managed via `scripts/setup-vendor.sh` or PowerShell equivalent
+- Each vendor subdirectory is its own git repo
+- Can commit/push from vendor subdirectories independently
+
+## When Making Changes
+
+1. **Check compatibility FIRST** - Verify libraries/languages work with target environment (Cloudflare Workers, etc.)
+2. **Verify current directory** before running any script
+3. **Test locally** before committing
+4. **Update documentation** if architecture changes
+5. **Check for path issues** if you see "module not found" errors
+6. **Deploy gateway changes** after testing locally: `cd packages\mcp-gateway && wrangler deploy`
+7. **Test deployed gateway** after deployment to verify changes work in production
+8. **Use Service Bindings** for worker-to-worker communication (reduces cost, improves performance)
+9. **Update Drive logs** for significant changes:
+   - Update `SESSION_LOG.md` with implementation details
+   - Add to `DECISIONS_LOG.md` for architecture decisions
+   - Add to `ISSUES_LOG.md` for problems/solutions
+   - Update `NEXT_SESSION.md` at end of session
+10. **Check for common bugs:**
+    - Token truncation in Authorization headers (use full token, not `substring(0, 20)`)
+    - Base64 encoding mismatches (Gmail uses base64url, Claude expects standard base64)
+    - JSON-RPC ID handling (use `!== undefined` check, not `|| null`)
+
+## Debugging Path Issues
+
+If you see "module not found" or "cannot find module" errors:
+
+1. Check current directory: `Get-Location`
+2. Verify file exists: `Test-Path "packages\mcp-github\package.json"`
+3. Reset to root: `Set-Location "<workspace-root>/personal-block-in-a-box"` or `cd $PSScriptRoot`
+4. Use absolute paths if needed (use `${workspaceFolder}` in Cursor configs)
+
+## Gmail MCP Email Encoding
+
+### ⚠️ Special Character Limitations
+
+**Issue:** Gmail MCP email encoding may fail with special Unicode characters (emojis, checkmarks, etc.) when building RFC822 messages.
+
+**Current Behavior:**
+- ✅ Plain text emails work correctly
+- ✅ Basic ASCII characters work correctly
+- ❌ Special Unicode characters (emojis, checkmarks, etc.) may cause "Invalid character" errors
+
+**Workaround:**
+- Use plain ASCII text in email bodies when sending via Gmail MCP
+- Avoid emojis, checkmarks, and other special Unicode characters
+- If special characters are needed, encode them properly or strip them before sending
+
+**Future Improvement:**
+- Implement proper UTF-8 encoding for email headers and bodies
+- Add character encoding validation before sending
+- Consider using a Workers-compatible email library for better encoding support
+
+## Code Style
+
+- TypeScript for all MCP implementations
+- ES modules (`"type": "module"` in package.json)
+- Use `@modelcontextprotocol/sdk` for MCP protocol
+- Use `@octokit/rest` for GitHub API
+- Cloudflare Workers compatible (Web APIs only, no Node.js-specific code)
+- Follow existing patterns in codebase
+
+## Testing
+
+- Test MCPs locally in Cursor first
+- Verify configs are generated correctly
+- Test Cloudflare Worker integration separately
+- Check logs for path-related errors
+- Test both stdio (local) and HTTP (Workers) transports
+
+### Testing Locally
+
+**Test GitHub MCP in Cursor:**
+1. Configure `config/cursor.json` with absolute path
+2. Restart Cursor
+3. Test basic operations (list repos, create issue)
+4. Test Actions operations (list workflows, get logs)
+
+**Test Gateway Locally:**
+```powershell
+cd packages\mcp-gateway
+npm run dev
+# Server runs on http://localhost:8787
+```
+
+### Testing Deployed Gateway
+
+**View Logs:**
+```powershell
+cd packages\mcp-gateway
+wrangler tail
+```
+
+## Monorepo Structure
+
+- **Root `package.json`:** Workspace configuration
+- **Package `package.json`:** Individual package dependencies
+- **Workspace commands:** Run from root, affect all packages
+- **Package commands:** Run from package directory
+
+## Porting Notes
+
+When porting from Go to TypeScript:
+
+1. **Study the Go code** - Understand what it does
+2. **Map to Octokit** - Find equivalent Octokit methods
+3. **Handle errors** - Port error handling logic
+4. **Test thoroughly** - Ensure feature parity
+5. **Document differences** - Note any behavioral differences
+6. **Credit original** - Reference Go implementation in comments
+
+## Philosophy
+
+- **Start simple** - Build what you need, add complexity later
+- **Don't over-engineer** - Avoid building unused infrastructure
+- **Incremental** - One MCP server at a time, prove it works
+- **Extract later** - Build in monorepo, extract to separate repo if it gets popular
+- **Cloudflare first** - Ensure everything works on Workers from the start
+
+## Key Documentation
+
+**Quick Reference:**
+- `README.md` - Project overview and quick start
+- `docs/README.md` - Documentation index
+- `docs/vision/CURRENT_STATE.md` - Implementation status (also in Drive as executive summary)
+
+**Setup Guides:**
+- `docs/setup/CURSOR_SETUP.md` - Setting up MCP in Cursor
+- `docs/setup/CLAUDE_AI_SETUP.md` - Setting up remote MCPs in Claude.ai
+- `docs/setup/DRIVE_INTEGRATION_SETUP.md` - Configuring Google Drive integration
+- `docs/setup/OAUTH_SETUP.md` - OAuth broker setup
+
+**Architecture:**
+- `docs/architecture/OVERVIEW.md` - High-level architecture
+- `docs/architecture/SERVICE_BINDINGS_GUIDE.md` - Service Bindings implementation
+- `docs/architecture/OAUTH_BROKER.md` - OAuth broker architecture
+
+**Troubleshooting:**
+- `docs/troubleshooting/MCP_PROTOCOL_GOTCHAS.md` - Common MCP issues
+- `docs/troubleshooting/CLOUDFLARE_WORKER_TO_WORKER_FETCH.md` - Error 1042 and solutions
+- `docs/troubleshooting/GMAIL_OAUTH_ISSUES.md` - Gmail API authentication problems
+
+**Vision & Philosophy:**
+- `docs/vision/DRIVE_STORAGE_PHILOSOPHY.md` - Drive organization strategy
+- `docs/vision/WORKFLOWS_AND_USE_CASES.md` - Use cases and workflows
+
+## Personal Preferences
+
+**For project maintainer personal setup:**
+- See `docs/personal/` directory (gitignored) for personal preferences
+- Configure Drive folder IDs in global Cursor rules (see `docs/setup/DRIVE_INTEGRATION_SETUP.md`)
+- General structure documented in `docs/vision/`, personal tweaks in `docs/personal/`
+- Examples: Drive folder structure, personal workflows, custom configurations
+

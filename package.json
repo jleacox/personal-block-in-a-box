@@ -1,0 +1,28 @@
+{
+  "name": "personal-block-in-a-box",
+  "version": "0.1.0",
+  "description": "Personal implementation of Block's MCP server architecture",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "build:github": "npm run build --workspace=@personal-block-in-a-box/mcp-github",
+    "setup-vendor": "echo 'Vendor setup - clone forks into vendor/ directory'",
+    "reauth:google-all": "node scripts/reauth-google-all.js",
+    "reauth:github": "node scripts/reauth-github.js"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "automation",
+    "productivity"
+  ],
+  "author": "Jason Leacox",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
+

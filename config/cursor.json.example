@@ -1,0 +1,68 @@
+{
+  "mcpServers": {
+    "github": {
+      "command": "node",
+      "args": ["${workspaceFolder}/packages/mcp-github/dist/index.js"],
+      "env": {
+        "OAUTH_BROKER_URL": "https://oauth-broker.YOUR_SUBDOMAIN.workers.dev",
+        "USER_ID": "YOUR_USER_ID"
+      }
+    },
+    "google-calendar": {
+      "command": "node",
+      "args": ["${workspaceFolder}/packages/mcp-calendar/dist/index.js"],
+      "env": {
+        "OAUTH_BROKER_URL": "https://oauth-broker.YOUR_SUBDOMAIN.workers.dev",
+        "USER_ID": "YOUR_USER_ID"
+      }
+    },
+    "google-drive": {
+      "command": "node",
+      "args": ["${workspaceFolder}/packages/mcp-drive/dist/index.js"],
+      "env": {
+        "OAUTH_BROKER_URL": "https://oauth-broker.YOUR_SUBDOMAIN.workers.dev",
+        "USER_ID": "YOUR_USER_ID"
+      }
+    },
+    "supabase": {
+      "command": "node",
+      "args": ["${workspaceFolder}/packages/mcp-supabase/dist/index.js"],
+      "env": {
+        "SUPABASE_URL": "https://YOUR_PROJECT_REF.supabase.co",
+        "SUPABASE_KEY": "your-service-role-key-here"
+      }
+    },
+    "asana": {
+      "command": "npx",
+      "args": ["mcp-remote", "https://mcp.asana.com/sse"],
+      "comment": "Using Asana's official MCP server - no custom implementation needed. See https://developers.asana.com/docs/using-asanas-mcp-server"
+    }
+  }
+}
+
+// Alternative: Direct token (temporary fallback for local dev)
+// {
+//   "mcpServers": {
+//     "github": {
+//       "command": "node",
+//       "args": ["${workspaceFolder}/packages/mcp-github/dist/index.js"],
+//       "env": {
+//         "GITHUB_TOKEN": "${env:GITHUB_TOKEN}"
+//       }
+//     },
+//     "google-calendar": {
+//       "command": "node",
+//       "args": ["${workspaceFolder}/packages/mcp-calendar/dist/index.js"],
+//       "env": {
+//         "GOOGLE_ACCESS_TOKEN": "${env:GOOGLE_ACCESS_TOKEN}"
+//       }
+//     },
+//     "google-drive": {
+//       "command": "node",
+//       "args": ["${workspaceFolder}/packages/mcp-drive/dist/index.js"],
+//       "env": {
+//         "GOOGLE_ACCESS_TOKEN": "${env:GOOGLE_ACCESS_TOKEN}"
+//       }
+//     }
+//   }
+// }

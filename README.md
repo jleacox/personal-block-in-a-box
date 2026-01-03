@@ -1,6 +1,14 @@
 # Personal Block-in-a-Box
 
-> An open-source implementation of Block's MCP infrastructure for personal productivity automation. Bring Block's proven 50-75% time savings patterns to individual use.
+**Take back control of your systems.** Personal Block-in-a-Box gives you **write access and full control** over GitHub, Calendar, Email, Tasks, and more—all accessible via voice, code, and conversation. This isn't just read-only integration; you can **create issues while walking**, **plan architecture in Claude.ai**, **implement in Cursor**, and have both systems share the same memory through Google Drive. The result? A **recursively self-improving, multi-agentic system** where Cursor handles tactical coding, Claude handles strategic thinking, and they both reference the same documentation and context.
+
+**Real examples:**
+- **Voice control**: "Create a GitHub issue in my repo: Fix calendar sync bug" while driving—it happens instantly
+- **Cross-memory workflow**: Claude.ai analyzes your codebase, creates an architecture plan in Google Drive, then Cursor reads that plan and implements it—both systems referencing the same shared documentation
+- **Strategic + Tactical**: Plan features philosophically in Claude.ai, implement them tactically in Cursor, document the decisions automatically—all with shared memory
+- **Extensible control**: Deploy any MCP server you want (even community ones that aren't certified), access it remotely via voice, and extend your system however you need
+
+This is **your infrastructure, your control, your extensibility**. No waiting for Claude to add support. No vendor lock-in. Just full write/control access to all your systems, accessible from anywhere, with shared memory between your coding environment and your strategic thinking environment.
 
 ---
 
@@ -16,25 +24,26 @@
 
 ## The Intent
 
-This repository implements Block's MCP server design patterns for personal productivity automation. It's a **full JavaScript/TypeScript port** of the official GitHub MCP server (originally written in Go), plus additional integrations for Google Calendar, Google Drive, Gmail, Supabase, and more.
+This repository gives you **full write/control access** to your systems through an extensible, multi-agentic architecture. It's a **full JavaScript/TypeScript port** of the official GitHub MCP server (originally written in Go), plus additional integrations for Google Calendar, Google Drive, Gmail, Supabase, and more.
 
 ### Why This Exists
 
-**For Personal Development:**
-- Bridge strategic planning (Claude.ai) and tactical coding (Cursor)
-- Voice access to your entire development stack via Claude phone app
-- Shared memory between Cursor and Claude for documentation and context
+**Take Back Control:**
+- **Full write access** - Create, update, delete across GitHub, Calendar, Email, Tasks—not just read-only
+- **Extensible architecture** - Deploy any MCP server you want, even community ones that aren't certified
+- **Your infrastructure** - No waiting for Claude to add support, no vendor lock-in, full control
 
-**For Personal Life Organization:**
-- Unified access to GitHub, Calendar, Email, Tasks via voice
-- Cross-service automation (Email → Calendar, GitHub → Tasks)
-- Manage your life and projects from anywhere
+**Multi-Agentic Self-Improving Systems:**
+- **Cursor (tactical coding)**: Fast, direct access for writing code and fixing bugs
+- **Claude.ai (strategic thinking)**: Philosophical conversations, architecture planning, documentation
+- **Shared memory**: Google Drive MCP enables cross-memory reference—both systems read/write the same documentation
+- **Recursive improvement**: Claude plans → Cursor implements → Claude documents → Both reference shared docs → System improves itself
 
-**For Universal Remote MCP Access:**
-- Deploy **any MCP server** to Cloudflare Workers
-- Access it remotely via Claude.ai and Claude phone app
-- No need to wait for Claude to add support
-- No need for certified servers - use your own implementations
+**Voice Control & Remote Access:**
+- **Talk to your stack** - Full write access via voice (Claude phone app)
+- **Manage from anywhere** - Create issues while walking, check calendar while driving
+- **Unified control** - One system for personal projects and life organization
+- **Cross-service automation** - Email → Calendar, GitHub → Tasks, all coordinated
 
 **See [Workflows & Use Cases](./docs/vision/WORKFLOWS_AND_USE_CASES.md) for detailed examples.**
 

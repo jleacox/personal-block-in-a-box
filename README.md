@@ -42,7 +42,7 @@ This repository implements Block's MCP server design patterns for personal produ
 
 ## Why Claude + Cursor + MCP?
 
-This stack is built specifically for **Claude (Anthropic) and Cursor IDE** using the **Model Context Protocol (MCP)** standard. Here's why this combination makes sense and why alternatives (ChatGPT, Gemini) would require significant architectural changes:
+This stack is built specifically for **Claude (Anthropic) and Cursor IDE** using the **Model Context Protocol (MCP)** standard. Here's why this combination makes sense and why alternatives (ChatGPT, Gemini, Microsoft) would require significant architectural changes:
 
 ### Claude's MCP Commitment
 
@@ -53,9 +53,7 @@ This stack is built specifically for **Claude (Anthropic) and Cursor IDE** using
 - ✅ **Ecosystem-first** - "Build once, use everywhere" philosophy
 - ✅ **Voice integration** - Remote MCPs in Claude.ai automatically work in Claude phone app
 
-**Strategic positioning:** Anthropic bet on open standards and interoperability over proprietary solutions, making MCP the foundation of their tool integration strategy.
-
-### Why Not ChatGPT or Gemini?
+### Why Not ChatGPT, Gemini, or Microsoft?
 
 **ChatGPT (OpenAI):**
 - ❌ **No native MCP support** - Uses Actions (OpenAPI schema), not MCP protocol
@@ -80,6 +78,18 @@ This stack is built specifically for **Claude (Anthropic) and Cursor IDE** using
 1. Building a custom client application (Gemini doesn't support user-facing MCP)
 2. Using Vertex AI API directly (not the consumer Gemini interface)
 3. Losing the voice/mobile access that makes this stack valuable
+
+**Microsoft Copilot/Power Automate:**
+- ❌ **No consumer-facing MCP** - Microsoft Copilot doesn't support user-configured MCP servers
+- ❌ **Different OAuth** - Microsoft Entra ID (Azure AD) requires separate OAuth implementation
+- ❌ **Different protocols** - Uses Plugins/Connectors/Graph API, not MCP
+- ❌ **Enterprise focus** - Designed for enterprise, not personal use
+
+**To use this stack with Microsoft would require:**
+1. Microsoft Entra ID OAuth integration (different from standard OAuth broker)
+2. Plugin/Connector wrapper (not native MCP)
+3. Microsoft Graph API integration (REST API, not MCP)
+4. Separate codebase for Microsoft services
 
 ### OAuth Architecture Differences
 
@@ -109,6 +119,19 @@ User → ChatGPT → ChatGPT OAuth Handler → Service API
 - **ChatGPT handles OAuth** - Different flow than OAuth broker pattern
 - **Redirect URI conflicts** - GitHub only allows one redirect URI per OAuth app
 
+**Microsoft's OAuth Pattern (Would Require Changes):**
+```
+User → Microsoft Copilot → Microsoft Entra ID → Microsoft Graph API
+                              ↓
+                    Azure AD App Registration
+                    Microsoft-specific scopes
+                    Multi-tenant support
+```
+
+- **Microsoft Entra ID** - Different OAuth provider (Azure AD)
+- **Different token format** - Microsoft JWT tokens with Microsoft claims
+- **Enterprise-focused** - Multi-tenant architecture, not personal use
+
 **Gemini's Pattern (No Consumer MCP):**
 - **No user-facing OAuth** - MCP is API-level only for developers
 - **Would require custom client** - Not accessible via Gemini UI
@@ -123,9 +146,9 @@ User → ChatGPT → ChatGPT OAuth Handler → Service API
 4. **No Vendor Lock-in** - MCP servers can work with any MCP-compatible client
 5. **Future-Proof** - Industry is converging on MCP (OpenAI and Microsoft backing it)
 
-**Why ChatGPT/Gemini would require new clients:**
+**Why ChatGPT/Gemini/Microsoft would require new clients:**
 
-1. **Different Protocols** - Actions (ChatGPT) and Function Calling (Gemini) vs MCP JSON-RPC
+1. **Different Protocols** - Actions (ChatGPT), Function Calling (Gemini), Plugins/Graph API (Microsoft) vs MCP JSON-RPC
 2. **Different OAuth Flows** - Each platform handles OAuth differently
 3. **Platform-Specific Code** - Would need separate implementations for each platform
 4. **Maintenance Burden** - Supporting multiple protocols increases complexity
@@ -216,6 +239,7 @@ Same system for personal projects and life organization. Unified access to GitHu
 - ✅ Remote access (Claude.ai, Claude phone app with voice)
 - ✅ Cloudflare Workers compatible
 - ✅ OAuth broker integration
+- ✅ **Tool name prefixing** - All tools prefixed with system identifiers (`github_`, `calendar_`, `gmail_`, `drive_`, `supabase_`) for clarity in Claude's UI
 
 See the [Features](#features) section below for detailed capabilities of each integration.
 
@@ -295,6 +319,11 @@ personal-block-in-a-box/
 │   ├── development/             # Development guides
 │   ├── setup/                   # Setup instructions
 │   └── reference/               # API references
+│
+├── scripts/                      # Setup and utility scripts
+│   ├── generate-registry-constants.ts  # Generate tool registry constants
+│   ├── validate-tools.ts        # Validate tool registrations
+│   └── pipeline/                # Email/calendar pipeline scripts (legacy)
 │
 └── README.md                    # This file
 ```
